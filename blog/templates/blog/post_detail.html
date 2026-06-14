@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} | Блог{% endblock %}
+
+{% block content %}
+<div class="col-lg-8 mx-auto">
+    <a href="{% url 'blog:home' %}" class="btn btn-light btn-sm mb-4">&larr; Назад на главную</a>
+
+    <article class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title h2 mb-3">{{ post.title }}</h1>
+            
+            <div class="text-muted small mb-4 border-bottom pb-2">
+                Автор: <strong>{{ post.author.username }}</strong> 
+                <span class="mx-2">|</span> 
+                Категория: <span class="badge bg-primary">{{ post.category.title }}</span>
+                <span class="mx-2">|</span> 
+                Дата: {{ post.created_at|date:"d.m.Y H:i" }}
+            </div>
+
+            <div class="card-text fs-5" style="line-height: 1.6; white-space: pre-line;">
+                {{ post.content }}
+            </div>
+
+            {% if post.tags.all %}
+                <div class="mt-4 pt-3 border-top">
+                    <span class="text-secondary small me-2">Теги:</span>
+                    {% for tag in post.tags.all %}
+                        <span class="badge bg-secondary">#{{ tag.title }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </article>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-body">
+            <h3 class="h4 mb-4">Комментарии ({{ comments.count }})</h3>
+
+            <div class="mb-4">
+                {% for comment in comments %}
+                    <div class="p-3 bg-light rounded mb-2 border-start border-primary border-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>{{ comment.author.username }}</strong>
+                            <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mb-0 text-secondary">{{ comment.text }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted my-3">Комментариев пока нет. Будьте первым!</p>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                {% if user.is_authenticated %}
+                    <h5 class="mb-3">Оставить комментарий:</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.text }}
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Отправить комментарий</button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning small mb-0">
+                        Добавлять комментарии могут только зарегистрированные пользователи. 
+                        <a href="{% url 'accounts:login' %}" class="alert-link">Войдите в аккаунт</a> или 
+                        <a href="{% url 'accounts:register' %}" class="alert-link">зарегистрируйтесь</a>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

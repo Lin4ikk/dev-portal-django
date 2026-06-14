@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Создать публикацию | Блог{% endblock %}
+
+{% block content %}
+<div class="col-md-8 mx-auto">
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-dark text-white py-3">
+            <h3 class="card-title h5 mb-0"> Написание новой статьи</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation">
+                {% csrf_token %} {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold"><strong>{{ field.label }}</strong></label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text text-muted small">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <a href="{% url 'blog:home' %}" class="btn btn-light btn-sm">&larr; Отмена</a>
+                    <button type="submit" class="btn btn-success">Опубликовать статью </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
