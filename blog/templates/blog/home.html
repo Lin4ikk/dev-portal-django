@@ -4,7 +4,18 @@
 
 {% block content %}
 <div class="col-lg-9">
-    <h2 class="mb-4 text-secondary">Публикации</h2>
+    <form method="get" action="{% url 'blog:home' %}" class="d-flex mb-4 shadow-sm rounded">
+        <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Поиск статей по названию или тексту..." class="form-control me-2 border-primary-subtle">
+        <button type="submit" class="btn btn-primary px-4">Найти</button>
+    </form>
+
+    <h2 class="mb-4 text-secondary">
+        {% if request.GET.q %}
+            Результаты поиска по запросу "{{ request.GET.q }}"
+        {% else %}
+            Публикации
+        {% endif %}
+    </h2>
     
     {% for post in posts %}
         <div class="card mb-4 shadow-sm">
@@ -25,32 +36,50 @@
                 <p class="card-text text-muted">{{ post.content|truncatechars:200 }}</p>
                 
                 <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                    <div class="text-muted small">
-                        Автор: <strong>{{ post.author.username }}</strong> 
-                        <span class="mx-2">|</span> 
-                        ⏱ Время чтения: ~{{ post.get_read_time }} мин.
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <div class="text-muted small">
+                            Автор: <strong>{{ post.author.username }}</strong> (Рейтинг: {{ post.author.profile.rating }})
+                            <span class="mx-2">|</span> 
+                             Комментарии: {{ post.get_comments_count }}
+                        </div>
+                        <div class="d-flex align-items-center bg-light rounded px-2 py-1 shadow-sm border">
+                            <a href="{% url 'blog:vote_post' post.pk 'up' %}" class="text-success text-decoration-none px-2 fw-bold" title="Вверх">▲</a>
+                            <span class="fw-bold mx-1 {% if post.get_rating > 0 %}text-success{% elif post.get_rating < 0 %}text-danger{% else %}text-muted{% endif %}">
+                                {{ post.get_rating }}
+                            </span>
+                            <a href="{% url 'blog:vote_post' post.pk 'down' %}" class="text-danger text-decoration-none px-2 fw-bold" title="Вниз">▼</a>
+                        </div>
                     </div>
-                    <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-outline-primary btn-sm">Читать далее &rarr;</a>
                 </div>
             </div>
         </div>
     {% empty %}
-        <div class="alert alert-info">В этой категории пока нет опубликованных статей.</div>
+        <div class="alert alert-info shadow-sm">Ничего не найдено по вашему запросу. Попробуйте изменить параметры поиска или выберите другую категорию.</div>
     {% endfor %}
 
     {% if is_paginated %}
         <nav aria-label="Навигация по страницам" class="mt-4">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center shadow-sm rounded d-inline-flex">
                 {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page=1">&laquo; Первая</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Первая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Назад</a>
+                    </li>
                 {% endif %}
 
-                <li class="page-item active"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+                <li class="page-item active">
+                    <span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                </li>
 
                 {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a></li>
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя &raquo;</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Вперед</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Последняя &raquo;</a>
+                    </li>
                 {% endif %}
             </ul>
         </nav>
@@ -60,7 +89,7 @@
 <div class="col-lg-3">
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"> Категории</h5>
+            <h5 class="mb-0">Категории</h5>
         </div>
         <div class="list-group list-group-flush">
             <a href="{% url 'blog:home' %}" class="list-group-item list-group-item-action {% if not current_category_id %}active{% endif %}">

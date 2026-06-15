@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-danger mb-4">Удаление публикации</h3>
+                    <p class="lead">Вы уверены, что хотите полностью удалить статью <strong>"{{ post.title }}"</strong>?</p>
+                    <p class="text-muted small">Это действие будет невозможно отменить.</p>
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger me-2">Да, удалить</button>
+                        <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-secondary">Отмена</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

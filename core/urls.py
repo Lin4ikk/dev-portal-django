@@ -21,3 +21,6 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')), # <--- ИСПОЛЬЗУЕМ ACCOUNTS
     path('', include('blog.urls', namespace='blog')),
 ]
+
+handler404 = 'blog.views.page_not_found_view'
+handler403 = 'blog.views.permission_denied_view'

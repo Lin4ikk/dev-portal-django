@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Доступ ограничен | 403{% endblock %}
+
+{% block content %}
+<div class="col-lg-8 mx-auto text-center py-5">
+    <h1 class="display-1 text-warning fw-bold">403</h1>
+    <h2 class="mb-4 text-secondary">Доступ ограничен</h2>
+    <p class="text-muted fs-5 mb-4">У вашего аккаунта недостаточно прав для выполнения этого действия. Редактировать или удалять контент могут только авторы или модераторы.</p>
+    <a href="{% url 'blog:home' %}" class="btn btn-dark px-4">Вернуться на главную</a>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Страница не найдена | 404{% endblock %}
+
+{% block content %}
+<div class="col-lg-8 mx-auto text-center py-5">
+    <h1 class="display-1 text-danger fw-bold">404</h1>
+    <h2 class="mb-4 text-secondary">Упс! Страница не найдена</h2>
+    <p class="text-muted fs-5 mb-4">Возможно, эта статья была удалена, переименована или её никогда не существовало на нашем портале.</p>
+    <a href="{% url 'blog:home' %}" class="btn btn-primary px-4">На главную страницу</a>
+</div>
+{% endblock %}

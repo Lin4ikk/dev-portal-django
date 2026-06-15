@@ -1,15 +1,17 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import FormMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 
 from .models import Post, Tag, Category
 from .forms import PostCreateForm
 from interactions.models import Comment
 from interactions.forms import CommentForm
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from .models import Post, Vote
 
 class PostListView(ListView):
     model = Post
@@ -19,9 +21,18 @@ class PostListView(ListView):
 
     def get_queryset(self):
         queryset = Post.objects.filter(is_published=True).select_related('author', 'category')
+        
         category_id = self.kwargs.get('category_id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
+            
+        search_query = self.request.GET.get('q')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) | 
+                Q(content__icontains=search_query)
+            )
+            
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -120,3 +131,31 @@ def comment_delete_view(request, pk):
         return redirect('blog:post_detail', pk=post_pk)
         
     return redirect('blog:home')
+
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)
+
+def permission_denied_view(request, exception=None):
+    return render(request, '403.html', status=403)
+
+
+
+@login_required
+def vote_post(request, pk, vote_type):
+    post = get_object_or_404(Post, pk=pk)
+    value = 1 if vote_type == 'up' else -1
+    
+    existing_vote = Vote.objects.filter(user=request.user, post=post).first()
+    
+    if existing_vote:
+        if existing_vote.value == value:
+            existing_vote.delete()
+        else:
+            existing_vote.value = value
+            existing_vote.save()
+    else:
+        Vote.objects.create(user=request.user, post=post, value=value)
+        
+    post.update_author_rating()
+    
+    return redirect(request.META.get('HTTP_REFERER', 'blog:home'))

@@ -1,11 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CustomUser(AbstractUser):
-    """
-    Кастомная модель пользователя для блога.
-    Выполняет требование по разделению на 3-4 роли.
-    """
     ROLE_GUEST = 'guest'
     ROLE_READER = 'reader'
     ROLE_AUTHOR = 'author'
@@ -31,18 +29,14 @@ class CustomUser(AbstractUser):
 
 
 class Profile(models.Model):
-    """
-    Модель профиля, связанная OneToOneField с пользователем.
-    Реализует требование сложной бизнес-логики (расчет рейтинга).
-    """
     user = models.OneToOneField(
         CustomUser, 
-        on_delete=models.CASCADE,  # <-- Исправлено здесь
+        on_delete=models.CASCADE, 
         related_name='profile',
         verbose_name="Пользователь"
     )
     avatar = models.ImageField(
-        upload_to='avatars/',      # <-- Исправлено здесь
+        upload_to='avatars/', 
         blank=True, 
         null=True, 
         verbose_name="Аватар"
@@ -54,12 +48,28 @@ class Profile(models.Model):
         return f"Профиль {self.user.username}"
 
     def update_rating(self):
-        """
-        Сложная операция (Бизнес-логика):
-        Пересчитывает рейтинг автора на основе общего количества лайков к его статьям.
-        """
-        pass
+        total_likes = 0
+        posts = self.user.posts.all()
+        for post in posts:
+            if hasattr(post, 'likes'):
+                total_likes += post.likes.count()
+        self.rating = total_likes
+        self.save()
+
+    def get_role_display_name(self):
+        return dict(CustomUser.ROLE_CHOICES).get(self.user.role, "Неизвестно")
 
     class Meta:
         verbose_name = "Профиль"
         verbose_name_plural = "Профили"
+
+
+@receiver(post_save, sender=CustomUser)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=CustomUser)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
