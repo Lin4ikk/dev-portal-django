@@ -12,4 +12,16 @@
 1. Убедиться, что виртуальное окружение активировано.
 2. Установить зависимости: 
    ```bash
-   pip install -r requirements.txt
+python -m venv .venv
+
+.venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+
+python manage.py migrate
+
+
+python manage.py createsuperuser
+
+
+python manage.py runserver
